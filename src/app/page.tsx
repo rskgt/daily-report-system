@@ -1,8 +1,10 @@
+import { redirect } from "next/navigation";
+
+/**
+ * ルートページ
+ * 現時点ではダッシュボードへリダイレクト
+ * TODO: 認証機能実装後、未認証ユーザーはログイン画面へリダイレクト
+ */
 export default function Home() {
-  return (
-    <main className="flex min-h-screen flex-col items-center justify-center p-24">
-      <h1 className="text-4xl font-bold">営業日報システム</h1>
-      <p className="mt-4 text-gray-600">システム準備中...</p>
-    </main>
-  );
+  redirect("/dashboard");
 }
