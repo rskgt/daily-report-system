@@ -2,6 +2,8 @@ import { prisma } from "@/lib/prisma";
 import { type NextRequest, NextResponse } from "next/server";
 import { type JwtPayload, verifyToken } from "./jwt";
 
+export const AUTH_TOKEN_COOKIE = "auth-token";
+
 export interface AuthenticatedUser {
   id: number;
   name: string;
@@ -13,13 +15,14 @@ export interface AuthenticatedUser {
 
 /**
  * リクエストからBearerトークンを抽出する
+ * Authorization ヘッダー → Cookie の順にフォールバック
  */
 function extractToken(request: NextRequest): string | null {
   const authHeader = request.headers.get("authorization");
-  if (!authHeader?.startsWith("Bearer ")) {
-    return null;
+  if (authHeader?.startsWith("Bearer ")) {
+    return authHeader.slice(7);
   }
-  return authHeader.slice(7);
+  return request.cookies.get(AUTH_TOKEN_COOKIE)?.value ?? null;
 }
 
 /**

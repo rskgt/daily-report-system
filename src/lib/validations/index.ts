@@ -69,6 +69,17 @@ export type {
   ReportSearchParams,
 } from "./report";
 
+// 日報フォームスキーマ
+export {
+  visitRecordFormSchema,
+  reportFormSchema,
+  toCreateReportRequest,
+} from "./report-form";
+export type {
+  VisitRecordFormValues,
+  ReportFormValues,
+} from "./report-form";
+
 // コメントスキーマ
 export {
   createCommentSchema,

@@ -1,4 +1,4 @@
-import { generateToken, verifyPassword } from "@/lib/auth";
+import { AUTH_TOKEN_COOKIE, generateToken, verifyPassword } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { loginRequestSchema } from "@/lib/validations";
 import { NextResponse } from "next/server";
@@ -79,7 +79,7 @@ export async function POST(request: Request) {
       role: user.role,
     });
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       success: true,
       data: {
         token,
@@ -94,6 +94,16 @@ export async function POST(request: Request) {
         },
       },
     });
+
+    response.cookies.set(AUTH_TOKEN_COOKIE, token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/",
+      maxAge: 60 * 60 * 24, // 24時間
+    });
+
+    return response;
   } catch {
     return NextResponse.json(
       {

@@ -34,7 +34,6 @@ const navItems: NavItem[] = [
     href: "/customers",
     label: "顧客管理",
     icon: Building2,
-    adminOnly: true,
   },
   {
     href: "/users",

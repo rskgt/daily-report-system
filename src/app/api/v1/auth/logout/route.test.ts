@@ -55,6 +55,10 @@ describe("POST /api/v1/auth/logout", () => {
     expect(res.status).toBe(200);
     expect(json.success).toBe(true);
     expect(json.data.message).toBe("ログアウトしました");
+
+    const cookie = res.cookies.get("auth-token");
+    expect(cookie?.value).toBe("");
+    expect(cookie?.maxAge).toBe(0);
   });
 
   it("トークンなしで401エラーが返る", async () => {

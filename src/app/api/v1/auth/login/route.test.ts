@@ -13,6 +13,7 @@ vi.mock("@/lib/prisma", () => ({
 
 const mockVerifyPassword = vi.fn();
 vi.mock("@/lib/auth", () => ({
+  AUTH_TOKEN_COOKIE: "auth-token",
   verifyPassword: (...args: unknown[]) => mockVerifyPassword(...args),
   generateToken: vi.fn(() => "mock-jwt-token"),
 }));
@@ -66,6 +67,12 @@ describe("POST /api/v1/auth/login", () => {
     expect(json.data.user.email).toBe("yamada@example.com");
     expect(json.data.user.role).toBe("sales");
     expect(json.data.user.department).toEqual({ id: 1, name: "営業1課" });
+
+    const cookie = res.cookies.get("auth-token");
+    expect(cookie?.value).toBe("mock-jwt-token");
+    expect(cookie?.httpOnly).toBe(true);
+    expect(cookie?.sameSite).toBe("lax");
+    expect(cookie?.path).toBe("/");
   });
 
   it("存在しないメールアドレスで401エラーが返る", async () => {

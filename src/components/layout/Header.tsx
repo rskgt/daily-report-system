@@ -11,6 +11,20 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { LogOut, Menu, User } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useState } from "react";
+
+const roleLabels: Record<string, string> = {
+  sales: "営業担当者",
+  manager: "上長",
+  admin: "管理者",
+};
+
+interface UserInfo {
+  name: string;
+  email: string;
+  role: string;
+}
 
 interface HeaderProps {
   /** モバイルメニューの開閉を制御する関数 */
@@ -24,12 +38,36 @@ interface HeaderProps {
  * ロゴ、ユーザー情報、ログアウトボタンを表示
  */
 export function Header({ onMenuToggle, isMenuOpen }: HeaderProps) {
-  // TODO: 認証機能実装後、実際のユーザー情報に置き換え
-  const mockUser = {
-    name: "山田太郎",
-    email: "yamada@example.com",
-    role: "sales" as const,
-  };
+  const router = useRouter();
+  const [user, setUser] = useState<UserInfo | null>(null);
+
+  useEffect(() => {
+    let ignore = false;
+    async function fetchUser() {
+      try {
+        const res = await fetch("/api/v1/auth/me");
+        if (!res.ok) {
+          router.push("/login");
+          return;
+        }
+        const json = await res.json();
+        if (!ignore && json.success) {
+          setUser({
+            name: json.data.name,
+            email: json.data.email,
+            role: json.data.role,
+          });
+        }
+      } catch {
+        // ネットワークエラー時はログインへ
+        router.push("/login");
+      }
+    }
+    fetchUser();
+    return () => {
+      ignore = true;
+    };
+  }, [router]);
 
   // ユーザー名からイニシャルを取得
   const getInitials = (name: string): string => {
@@ -40,10 +78,13 @@ export function Header({ onMenuToggle, isMenuOpen }: HeaderProps) {
     return name.slice(0, 2);
   };
 
-  const handleLogout = () => {
-    // TODO: 認証機能実装後、実際のログアウト処理に置き換え
-    console.log("ログアウト処理");
-  };
+  const handleLogout = useCallback(async () => {
+    try {
+      await fetch("/api/v1/auth/logout", { method: "POST" });
+    } finally {
+      router.push("/login");
+    }
+  }, [router]);
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -78,56 +119,58 @@ export function Header({ onMenuToggle, isMenuOpen }: HeaderProps) {
         <div className="flex-1" />
 
         {/* ユーザーメニュー */}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="ghost"
-              className="relative flex items-center gap-2 px-2"
-              aria-label="ユーザーメニューを開く"
-            >
-              <Avatar className="h-8 w-8">
-                <AvatarFallback className="bg-primary/10 text-primary text-xs">
-                  {getInitials(mockUser.name)}
-                </AvatarFallback>
-              </Avatar>
-              <span className="hidden text-sm font-medium md:inline-block">
-                {mockUser.name}
-              </span>
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-56">
-            <div className="flex items-center gap-2 p-2">
-              <Avatar className="h-8 w-8">
-                <AvatarFallback className="bg-primary/10 text-primary text-xs">
-                  {getInitials(mockUser.name)}
-                </AvatarFallback>
-              </Avatar>
-              <div className="flex flex-col space-y-1">
-                <p className="text-sm font-medium leading-none">
-                  {mockUser.name}
-                </p>
-                <p className="text-xs leading-none text-muted-foreground">
-                  {mockUser.email}
-                </p>
+        {user && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                className="relative flex items-center gap-2 px-2"
+                aria-label="ユーザーメニューを開く"
+              >
+                <Avatar className="h-8 w-8">
+                  <AvatarFallback className="bg-primary/10 text-primary text-xs">
+                    {getInitials(user.name)}
+                  </AvatarFallback>
+                </Avatar>
+                <span className="hidden text-sm font-medium md:inline-block">
+                  {user.name}
+                </span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <div className="flex items-center gap-2 p-2">
+                <Avatar className="h-8 w-8">
+                  <AvatarFallback className="bg-primary/10 text-primary text-xs">
+                    {getInitials(user.name)}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex flex-col space-y-1">
+                  <p className="text-sm font-medium leading-none">
+                    {user.name}
+                  </p>
+                  <p className="text-xs leading-none text-muted-foreground">
+                    {roleLabels[user.role] ?? user.role}
+                  </p>
+                </div>
               </div>
-            </div>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem asChild>
-              <Link href="/profile" className="flex items-center">
-                <User className="mr-2 h-4 w-4" />
-                プロフィール
-              </Link>
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              onClick={handleLogout}
-              className="text-destructive focus:text-destructive"
-            >
-              <LogOut className="mr-2 h-4 w-4" />
-              ログアウト
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem asChild>
+                <Link href="/profile" className="flex items-center">
+                  <User className="mr-2 h-4 w-4" />
+                  プロフィール
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={handleLogout}
+                className="text-destructive focus:text-destructive"
+              >
+                <LogOut className="mr-2 h-4 w-4" />
+                ログアウト
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
       </div>
     </header>
   );

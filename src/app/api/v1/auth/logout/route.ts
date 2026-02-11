@@ -1,4 +1,8 @@
-import { authenticateRequest, isAuthError } from "@/lib/auth";
+import {
+  AUTH_TOKEN_COOKIE,
+  authenticateRequest,
+  isAuthError,
+} from "@/lib/auth";
 import { type NextRequest, NextResponse } from "next/server";
 
 export async function POST(request: NextRequest) {
@@ -7,10 +11,20 @@ export async function POST(request: NextRequest) {
     return authResult;
   }
 
-  return NextResponse.json({
+  const response = NextResponse.json({
     success: true,
     data: {
       message: "ログアウトしました",
     },
   });
+
+  response.cookies.set(AUTH_TOKEN_COOKIE, "", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    path: "/",
+    maxAge: 0,
+  });
+
+  return response;
 }
