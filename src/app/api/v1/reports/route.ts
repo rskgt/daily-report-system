@@ -37,9 +37,6 @@ export async function GET(request: NextRequest) {
   }
 
   const { id: userId, role, departmentId } = authResult;
-  console.log(
-    `[Reports GET] userId=${userId}, role=${role}, departmentId=${departmentId}`,
-  );
 
   try {
     const { searchParams } = new URL(request.url);
@@ -51,7 +48,6 @@ export async function GET(request: NextRequest) {
     const skip = (page - 1) * limit;
 
     const where = buildReportWhereByRole(userId, role, departmentId);
-    console.log("[Reports GET] where条件:", JSON.stringify(where));
 
     const [reports, totalCount] = await Promise.all([
       prisma.dailyReport.findMany({
@@ -70,10 +66,6 @@ export async function GET(request: NextRequest) {
       }),
       prisma.dailyReport.count({ where }),
     ]);
-
-    console.log(
-      `[Reports GET] 取得件数: ${reports.length} / 全${totalCount}件`,
-    );
 
     return NextResponse.json({
       success: true,
