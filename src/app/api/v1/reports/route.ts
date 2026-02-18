@@ -203,17 +203,12 @@ export async function POST(request: NextRequest) {
     );
   } catch (error) {
     console.error("日報作成エラー:", error);
-    const detail =
-      error instanceof Error
-        ? { message: error.message, stack: error.stack }
-        : { message: String(error) };
     return NextResponse.json(
       {
         success: false,
         error: {
           code: "INTERNAL_SERVER_ERROR",
           message: "サーバーエラーが発生しました",
-          ...(process.env.NODE_ENV !== "production" && { detail }),
         },
       },
       { status: 500 },
