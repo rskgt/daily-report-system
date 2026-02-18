@@ -79,6 +79,7 @@ async function getReports(
   const reports = await prisma.dailyReport.findMany({
     where,
     orderBy: { reportDate: "desc" },
+    take: 200,
     include: {
       user: {
         select: { id: true, name: true },

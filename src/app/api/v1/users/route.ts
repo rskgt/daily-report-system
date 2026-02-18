@@ -38,6 +38,7 @@ export async function GET(request: NextRequest) {
   try {
     const users = await prisma.user.findMany({
       orderBy: { name: "asc" },
+      take: 500,
       include: {
         department: { select: { id: true, name: true } },
         manager: { select: { id: true, name: true } },

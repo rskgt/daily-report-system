@@ -20,6 +20,7 @@ async function getCustomers() {
   return prisma.customer.findMany({
     where: { isActive: true },
     orderBy: { name: "asc" },
+    take: 500,
   });
 }
 

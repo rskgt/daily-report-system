@@ -44,6 +44,7 @@ export default async function UsersPage() {
   const users = await prisma.user.findMany({
     where: { isActive: true },
     orderBy: { name: "asc" },
+    take: 500,
     include: {
       department: { select: { name: true } },
     },
