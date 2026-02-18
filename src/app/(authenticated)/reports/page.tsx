@@ -140,6 +140,7 @@ export default async function ReportsPage({
   const departmentId = currentUser?.departmentId ?? null;
 
   const params = await searchParams;
+  const hasComments = params.has_comments === "true";
   const filters: FilterParams = {
     userName:
       typeof params.user_name === "string" ? params.user_name : undefined,
@@ -157,6 +158,8 @@ export default async function ReportsPage({
   // 「確認済み」= 自分(閲覧者)がコメントを残している日報
   // 「未確認」= 自分がコメントを残していない日報
   const filteredReports = reports.filter((report) => {
+    // コメント有りフィルター（ダッシュボードからの遷移）
+    if (hasComments && report.comments.length === 0) return false;
     if (!filters.status || filters.status === "all") return true;
     const hasMyComment = report.comments.some((c) => c.userId === userId);
     return filters.status === "confirmed" ? hasMyComment : !hasMyComment;

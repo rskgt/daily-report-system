@@ -53,10 +53,15 @@ async function getDashboardData(userId: number) {
       }),
     ]);
 
+  const dateFrom = `${monthStart.getFullYear()}-${String(monthStart.getMonth() + 1).padStart(2, "0")}-01`;
+  const dateTo = `${monthEnd.getFullYear()}-${String(monthEnd.getMonth() + 1).padStart(2, "0")}-${String(monthEnd.getDate()).padStart(2, "0")}`;
+
   return {
     monthlySubmitted: submittedCount,
     monthlyDraft: draftCount,
     commentCount,
+    dateFrom,
+    dateTo,
     recentReports: recentReports.map((r) => ({
       id: r.id,
       date: r.reportDate.toLocaleDateString("ja-JP", {
@@ -97,32 +102,42 @@ export default async function DashboardPage() {
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {/* 今月の日報サマリー */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">今月の日報</CardTitle>
-            <FileText className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{data.monthlySubmitted}件</div>
-            <p className="text-xs text-muted-foreground">
-              提出済み / 下書き: {data.monthlyDraft}件
-            </p>
-          </CardContent>
-        </Card>
+        <Link
+          href={`/reports?date_from=${data.dateFrom}&date_to=${data.dateTo}`}
+        >
+          <Card className="transition-colors hover:bg-muted/50 cursor-pointer">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">今月の日報</CardTitle>
+              <FileText className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {data.monthlySubmitted}件
+              </div>
+              <p className="text-xs text-muted-foreground">
+                提出済み / 下書き: {data.monthlyDraft}件
+              </p>
+            </CardContent>
+          </Card>
+        </Link>
 
-        {/* 未読コメント */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">コメント</CardTitle>
-            <MessageSquare className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{data.commentCount}件</div>
-            <p className="text-xs text-muted-foreground">
-              自分の日報へのコメント
-            </p>
-          </CardContent>
-        </Card>
+        {/* コメント */}
+        <Link
+          href={`/reports?date_from=${data.dateFrom}&date_to=${data.dateTo}&has_comments=true`}
+        >
+          <Card className="transition-colors hover:bg-muted/50 cursor-pointer">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">コメント</CardTitle>
+              <MessageSquare className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{data.commentCount}件</div>
+              <p className="text-xs text-muted-foreground">
+                自分の日報へのコメント
+              </p>
+            </CardContent>
+          </Card>
+        </Link>
 
         {/* クイックアクション */}
         <Card className="md:col-span-2">
